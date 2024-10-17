@@ -1,5 +1,6 @@
 import argparse
-import pathlib 
+import pathlib
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument("filepath", help="archivo a procesar", type=pathlib.Path)
@@ -16,44 +17,53 @@ parser.add_argument("-w", "--count-words", help="contador de palabras",
 parser.add_argument("-m", "--count-characters", help="contador de caracteres",
                     action="store_true")
 
+
 args = parser.parse_args()
 
 def calculete_result():
     result = []
 
-    if args.count_bytes:
-        with open(args.filepath, "rb") as reader:
-            bytes_content = reader.read()
-            result.append(len(bytes_content))
+    byte_count = 0
+    line_count = 0
+    word_count = 0
+    character_count = 0
 
-    with open(args.filepath, "r", encoding='utf-8') as reader:
-        content = reader.read()
+    with open(args.filepath, "rb") as reader:
+
+        for line in reader:
+            byte_count += len(line)
+            line_count += 1
+            word_count += len(line.decode(encoding='utf-8', errors='strict').split())
+            character_count += len(line.decode(encoding='utf-8', errors='strict'))
+
+
+    if args.count_bytes:
+        result.append(byte_count)
 
     if args.count_lines:
-        calculate_lines = content.count('\n') + 1
-        result.append(calculate_lines)
+        result.append(line_count)
 
     if args.count_words:
-        calculate_words = len(content.split())
-        result.append(calculate_words)
+        result.append(word_count)
 
     if args.count_characters:
-        calculate_characters = len(content)
-        result.append(calculate_characters)
+        result.append(character_count)
 
     return result
-
     
+
+
 def structure() -> str:
 
     if not (args.count_bytes or args.count_lines or args.count_words or args.count_characters):
+        args.count_bytes = True
         args.count_lines = True
-        args.count_words = True
         args.count_characters = True
     
     string = " ".join(str(num) for num in calculete_result()) + " " + str(args.filepath)
 
     return string
 
+t0 = time.perf_counter()
 print(structure())
-
+print("Elapsed time", time.perf_counter() - t0)
